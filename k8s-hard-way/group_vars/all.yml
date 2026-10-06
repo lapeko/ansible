@@ -1,0 +1,25 @@
+---
+images_dir: /var/lib/libvirt/images
+base_image: /var/lib/libvirt/images/debian-12-genericcloud-amd64.qcow2
+
+vms:
+  - name: jumpbox
+    ram: 512
+    cpu: 1
+    disk: 10G
+    ip: 192.168.121.10
+  - name: controlplane
+    ram: 2048
+    cpu: 1
+    disk: 20G
+    ip: 192.168.121.11
+  - name: node01
+    ram: 2048
+    cpu: 1
+    disk: 20G
+    ip: 192.168.121.12
+  - name: node02
+    ram: 2048
+    cpu: 1
+    disk: 20G
+    ip: 192.168.121.13

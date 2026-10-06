@@ -1,0 +1,20 @@
+---
+- name: Destroy K8s VMs
+  hosts: localhost
+  connection: local
+  become: true
+
+  tasks:
+    - name: Stop VMs from vms list
+      ansible.builtin.command: "virsh destroy {{ item.name }}"
+      loop: "{{ vms }}"
+      register: destroy_out
+      changed_when: "'destroyed' in destroy_out.stdout"
+      failed_when: false
+
+    - name: Undefine VMs and remove storage from vms list
+      ansible.builtin.command: "virsh undefine {{ item.name }} --remove-all-storage"
+      loop: "{{ vms }}"
+      register: undefine_out
+      changed_when: "'undefined' in undefine_out.stdout"
+      failed_when: false

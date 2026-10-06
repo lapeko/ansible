@@ -1,0 +1,39 @@
+---
+- name: Create K8s VMs
+  hosts: localhost
+  connection: local
+  become: true
+
+  tasks:
+    - name: Download Debian 12 base image
+      ansible.builtin.get_url:
+        url: "https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2"
+        dest: "{{ base_image }}"
+        mode: "0644"
+
+    - name: Create VM disk overlays
+      ansible.builtin.command: >
+        qemu-img create -f qcow2 -b {{ base_image }} -F qcow2 {{ images_dir }}/{{ item.name }}.qcow2 {{ item.disk }}
+      args:
+        creates: "{{ images_dir }}/{{ item.name }}.qcow2"
+      loop: "{{ vms }}"
+
+    - name: Get list of existing VMs
+      ansible.builtin.command: virsh list --all --name
+      register: existing_vms
+      changed_when: false
+
+    - name: Provision VMs with virt-install
+      ansible.builtin.command: >
+        virt-install
+        --name {{ item.name }}
+        --ram {{ item.ram }}
+        --vcpus {{ item.cpu }}
+        --disk path={{ images_dir }}/{{ item.name }}.qcow2,bus=virtio
+        --os-variant debian12
+        --network network=default,model=virtio
+        --graphics none
+        --import
+        --noautoconsole
+      loop: "{{ vms }}"
+      when: item.name not in existing_vms.stdout_lines
